@@ -132,4 +132,42 @@ public class ShopService {
         return CommonEntity.success(response);
     }
 
+    /**
+     * 商家注册业务逻辑
+     */
+    public Shop registerShop(Shop shop) {
+        // 1. 校验账号是否已存在
+        Shop exist = shopRepository.findByAccount(shop.getAccount());
+        if (exist != null) {
+            throw new RuntimeException("该账号已被注册");
+        }
+
+        // 2. 补全 Entity 中 @PrePersist 没处理的默认值
+        // 你的 @PrePersist 处理了 createTime, totalSales, rating
+        // 但 status (1:营业, 0:休息) 需要手动设置一下，默认注册完是营业状态
+        if (shop.getStatus() == null) {
+            shop.setStatus(1);
+        }
+
+        // 3. 保存到数据库
+        // createTime, totalSales, rating 会在 @PrePersist 中自动填充
+        return shopRepository.save(shop);
+    }
+
+    /**
+     * 商家登录逻辑
+     */
+    public Shop login(String account, String password) {
+        Shop shop = shopRepository.findByAccount(account);
+        // 1. 账号不存在
+        if (shop == null) {
+            return null;
+        }
+        // 2. 密码错误 (实际项目中建议加密比对)
+        if (!shop.getPassword().equals(password)) {
+            return null;
+        }
+        return shop;
+    }
+
 }

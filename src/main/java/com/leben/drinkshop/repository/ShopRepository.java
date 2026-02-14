@@ -23,4 +23,8 @@ public interface ShopRepository extends JpaRepository<Shop,Long> {
                                  @Param("userLon") Double userLon,
                                  @Param("seed") Long seed,
                                  Pageable pageable);
+
+
+    // 根据账号查询店铺，用于注册时查重
+    Shop findByAccount(String account);
 }
