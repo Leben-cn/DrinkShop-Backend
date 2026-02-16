@@ -215,4 +215,24 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    /**
+     * 商家获取订单列表
+     * @param shopId 商家ID (即Shop表的主键ID)
+     * @param status 订单状态 (null=查全部, 0=待制作, 1=已完成, 2=退款)
+     */
+    public List<OrderResponse> getMerchantOrders(Long shopId, Integer status) {
+        List<Order> orders;
+
+        if (status == null) {
+            // 查询全部
+            orders = orderRepository.findAllByShopIdOrderByCreateTimeDesc(shopId);
+        } else {
+            // 查询指定状态
+            orders = orderRepository.findByShopIdAndStatusOrderByCreateTimeDesc(shopId, status);
+        }
+
+        // 复用之前的 Entity 转 DTO 方法
+        return convertToVOList(orders);
+    }
+
 }

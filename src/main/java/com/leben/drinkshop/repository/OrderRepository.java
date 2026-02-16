@@ -29,4 +29,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      */
     List<Order> findByUserIdAndStatusNotOrderByCreateTimeDesc(Long userId, Integer status);
 
+
+    // 1. 查询该店铺的所有订单（按时间倒序）
+    List<Order> findAllByShopIdOrderByCreateTimeDesc(Long shopId);
+
+    // 2. 根据状态查询店铺订单 (0:待制作, 1:已完成, 2:退款/售后)
+    List<Order> findByShopIdAndStatusOrderByCreateTimeDesc(Long shopId, Integer status);
 }
