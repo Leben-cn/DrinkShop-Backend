@@ -32,7 +32,7 @@ public class DrinksResponse {
 
     private String distance;
     //规格列表
-    private List<SpecGroupResponse> specs;
+    private List<DrinkSpecItemResponse> specs;
     //打包费
     private BigDecimal packingFee;
 

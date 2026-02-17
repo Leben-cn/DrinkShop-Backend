@@ -74,9 +74,6 @@ public class Drink {
             createTime = LocalDateTime.now();
         }
     }
-
-    // 规格关联 (保持不变)
-    @OneToMany(mappedBy = "drink", fetch = FetchType.LAZY)
-    @OrderBy("sortOrder ASC")
-    private List<SpecGroup> specGroups;
+    @OneToMany(mappedBy = "drink", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<DrinkSpecRelation> specRelations;
 }

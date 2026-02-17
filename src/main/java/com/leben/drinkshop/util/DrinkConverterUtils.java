@@ -3,7 +3,10 @@ package com.leben.drinkshop.util;
 import com.leben.drinkshop.dto.response.*;
 import com.leben.drinkshop.entity.Drink;
 import com.leben.drinkshop.entity.Shop;
+import com.leben.drinkshop.entity.SpecOption;
+import com.leben.drinkshop.entity.SpecTemplate;
 import org.springframework.beans.BeanUtils;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,28 +43,46 @@ public class DrinkConverterUtils {
             dto.setDistance("未知");
         }
 
-        // 4. 【核心】填充规格 (解决你之前的 specs 为 null 问题)
-        if (drink.getSpecGroups() != null && !drink.getSpecGroups().isEmpty()) {
-            List<SpecGroupResponse> specDtos = drink.getSpecGroups().stream().map(group -> {
-                SpecGroupResponse groupDto = new SpecGroupResponse();
-                groupDto.setId(group.getId());
-                groupDto.setGroupName(group.getName());
-                groupDto.setIsMultiple(group.getIsMultiple());
+        if (drink.getSpecRelations() != null && !drink.getSpecRelations().isEmpty()) {
 
-                if (group.getOptions() != null) {
-                    List<SpecOptionResponse> optionDtos = group.getOptions().stream().map(option -> {
-                        SpecOptionResponse optionDto = new SpecOptionResponse();
-                        optionDto.setId(option.getId());
-                        optionDto.setName(option.getName());
-                        optionDto.setPrice(option.getPrice());
-                        return optionDto;
-                    }).collect(Collectors.toList());
-                    groupDto.setOptions(optionDtos);
-                }
-                return groupDto;
-            }).collect(Collectors.toList());
+            List<DrinkSpecItemResponse> flatSpecs = drink.getSpecRelations().stream()
+                    // 过滤空数据
+                    .filter(rel -> rel.getSpecOption() != null && rel.getSpecOption().getTemplate() != null) // ✅ 修正：getTemplate()
+                    .map(rel -> {
+                        DrinkSpecItemResponse item = new DrinkSpecItemResponse();
+                        SpecOption option = rel.getSpecOption();
 
-            dto.setSpecs(specDtos);
+                        SpecTemplate template = option.getTemplate();
+
+                        // 1. 填选项数据
+                        item.setOptionId(option.getId());
+                        item.setOptionName(option.getName());
+
+                        // 价格逻辑：优先用 Relation 里的加价，没有则用 Option 里的
+                        if (rel.getPriceAdjust() != null) {
+                            item.setPrice(rel.getPriceAdjust());
+                        } else {
+                            // 注意：你的 SpecOption 实体里如果不叫 price 叫 priceAdjust，这里要对应改
+                            item.setPrice(option.getPriceAdjust());
+                        }
+
+                        // 2. 填分组数据 (关键！前端靠这个分组)
+                        item.setGroupId(template.getId());
+                        item.setGroupName(template.getName());
+
+                        // 假设你的 SpecTemplate 里没有 isMultiple 字段了(因为是通用的)，
+                        // 如果你需要这个逻辑，可能需要在 DrinkSpecRelation 里加或者默认都为 0
+                        // 这里演示：如果 template 里有 sortOrder
+                        item.setSortOrder(template.getSortOrder());
+
+                        return item;
+                    })
+                    // 排序：先按组排，再按选项ID排
+                    .sorted(Comparator.comparingInt(DrinkSpecItemResponse::getSortOrder)
+                            .thenComparingLong(DrinkSpecItemResponse::getOptionId))
+                    .collect(Collectors.toList());
+
+            dto.setSpecs(flatSpecs);
         }
 
         return dto;
