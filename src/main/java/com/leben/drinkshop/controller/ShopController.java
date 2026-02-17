@@ -29,8 +29,8 @@ public class ShopController {
     @GetMapping("/{shopId}/menu")
     public CommonEntity<List<DrinksResponse>> getShopMenu(
             @PathVariable Long shopId,
-            @RequestParam Double userLat,
-            @RequestParam Double userLon) {
+            @RequestParam(defaultValue = "0.0") Double userLat,
+            @RequestParam(defaultValue = "0.0") Double userLon) {
         return shopService.getShopMenu(shopId,userLat,userLon);
     }
 
