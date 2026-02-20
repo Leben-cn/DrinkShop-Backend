@@ -36,4 +36,6 @@ public class DrinksResponse {
     //打包费
     private BigDecimal packingFee;
 
+    private Integer stock;
+
 }

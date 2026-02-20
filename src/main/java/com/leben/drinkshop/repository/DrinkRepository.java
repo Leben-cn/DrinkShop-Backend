@@ -41,4 +41,9 @@ public interface DrinkRepository extends JpaRepository<Drink, Long>, JpaSpecific
      */
     List<Drink> findTop6ByShopIdAndStatusOrderBySalesVolumeDesc(Long shopId, Integer status);
 
+    /**
+     * 根据商家分类 ID 统计商品数量
+     */
+    Integer countByShopCategoryId(Long shopCategoryId);
+
 }

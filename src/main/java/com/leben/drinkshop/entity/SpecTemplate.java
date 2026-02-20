@@ -19,7 +19,13 @@ public class SpecTemplate {
     @Column(name = "sort_order")
     private Integer sortOrder;
 
-    // 【重要】删除了 drink 字段！因为它现在是通用的，不属于某一个饮品。
+    // 对应 is_multiple bit(1)
+    // JPA 会自动把 bit(1) 映射为 Boolean (true/false)
+    @Column(name = "is_multiple")
+    private Boolean isMultiple;
+
+    @Column(name = "drink_id")
+    private Long drinkId;
 
     // 一对多：一个模板包含多个通用选项 (如：温度 -> 少冰, 去冰)
     @OneToMany(mappedBy = "template", fetch = FetchType.LAZY)

@@ -13,4 +13,5 @@ public class ShopCategoriesResponse {
     private Boolean isShow;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    private Integer drinkNum;
 }

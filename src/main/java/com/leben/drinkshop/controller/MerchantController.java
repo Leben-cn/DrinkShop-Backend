@@ -1,7 +1,10 @@
 package com.leben.drinkshop.controller;
 
 import com.leben.drinkshop.dto.CommonEntity;
+import com.leben.drinkshop.dto.response.DrinkSpecItemResponse;
 import com.leben.drinkshop.dto.response.OrderResponse;
+import com.leben.drinkshop.dto.response.ShopCategoriesResponse;
+import com.leben.drinkshop.service.MerchantService;
 import com.leben.drinkshop.service.OrderService;
 import com.leben.drinkshop.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
@@ -9,16 +12,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/merchant/orders") // 区分于用户的 /orders
+@RequestMapping("/merchant") // 区分于用户的 /orders
 @RequiredArgsConstructor
-public class MerchantOrderController {
+public class MerchantController {
 
     private final OrderService orderService;
+    private final MerchantService merchantService;
 
     /**
      * 1. 获取商家的全部订单
      */
-    @GetMapping("/all")
+    @GetMapping("/orders/all")
     public CommonEntity<List<OrderResponse>> getAllOrders(
             @RequestHeader("Authorization") String token) {
         // 商家登录时，Token 里存的就是 shopId
@@ -32,7 +36,7 @@ public class MerchantOrderController {
     /**
      * 2. 获取待制作订单 (Status = 0)
      */
-    @GetMapping("/pending")
+    @GetMapping("/orders/pending")
     public CommonEntity<List<OrderResponse>> getPendingOrders(
             @RequestHeader("Authorization") String token) {
         Long shopId = JwtUtils.getIdFromToken(token);
@@ -45,7 +49,7 @@ public class MerchantOrderController {
      * 3. 获取已完成订单 (Status = 1)
      * (包含已评价和未评价的，因为业务逻辑是 1 代表制作完成/订单结束)
      */
-    @GetMapping("/completed")
+    @GetMapping("/orders/completed")
     public CommonEntity<List<OrderResponse>> getCompletedOrders(
             @RequestHeader("Authorization") String token) {
         Long shopId = JwtUtils.getIdFromToken(token);
@@ -57,12 +61,42 @@ public class MerchantOrderController {
     /**
      * 4. 获取退款/售后订单 (Status = 2)
      */
-    @GetMapping("/refund")
+    @GetMapping("/orders/refund")
     public CommonEntity<List<OrderResponse>> getRefundOrders(
             @RequestHeader("Authorization") String token) {
         Long shopId = JwtUtils.getIdFromToken(token);
-        if (shopId == null) return CommonEntity.error("Token无效");
+        if (shopId == null) {
+            return CommonEntity.error("Token无效");
+        }
 
         return CommonEntity.success(orderService.getMerchantOrders(shopId, 2));
     }
+
+    @GetMapping("/spec/all")
+    public CommonEntity<List<DrinkSpecItemResponse>> getAllSpecs(
+            @RequestHeader("Authorization") String token) {
+        Long shopId = JwtUtils.getIdFromToken(token);
+        if (shopId == null) {
+            return CommonEntity.error("Token无效");
+        }
+        List<DrinkSpecItemResponse> flatList = merchantService.getAllSpecItems();
+        return CommonEntity.success(flatList);
+    }
+
+    /**
+     * 5. 获取商家的全部商品分类
+     */
+    @GetMapping("/category/all")
+    public CommonEntity<List<ShopCategoriesResponse>> getCategories(
+            @RequestHeader("Authorization") String token) {
+
+        Long shopId = JwtUtils.getIdFromToken(token);
+        if (shopId == null) {
+            return CommonEntity.error("Token无效，请重新登录");
+        }
+
+        List<ShopCategoriesResponse> list = merchantService.getShopCategories(shopId);
+        return CommonEntity.success(list);
+    }
+
 }
