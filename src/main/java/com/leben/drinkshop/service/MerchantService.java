@@ -12,6 +12,8 @@ import com.leben.drinkshop.repository.SpecTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -87,5 +89,40 @@ public class MerchantService {
             return res;
         }).collect(Collectors.toList());
     }
+
+    @Transactional
+    public void addShopCategory(Long shopId, String name) {
+        ShopCategory category = new ShopCategory();
+        category.setShopId(shopId);
+        category.setName(name);
+        category.setIsShow(true);
+
+        Integer maxSort = shopCategoryRepository.findMaxSortByShopId(shopId);
+
+        int newSort = (maxSort == null) ? 1 : maxSort + 1;
+        category.setSort(newSort);
+
+        shopCategoryRepository.save(category);
+    }
+
+    @Transactional
+    public void deleteShopCategory(Long shopId, Long categoryId) {
+
+        ShopCategory category = shopCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("分类不存在"));
+
+        if (!category.getShopId().equals(shopId)) {
+            throw new RuntimeException("非法操作：无权删除他人分类");
+        }
+
+        // 业务检查：检查分类下是否有商品
+        Integer count = drinkRepository.countByShopCategoryId(categoryId);
+        if (count != null && count > 0) {
+            throw new RuntimeException("该分类下尚有商品，请先移动或删除商品后再试");
+        }
+
+        shopCategoryRepository.deleteById(categoryId);
+    }
+
 
 }

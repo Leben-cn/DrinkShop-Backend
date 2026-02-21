@@ -9,6 +9,7 @@ import com.leben.drinkshop.service.OrderService;
 import com.leben.drinkshop.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -98,5 +99,33 @@ public class MerchantController {
         List<ShopCategoriesResponse> list = merchantService.getShopCategories(shopId);
         return CommonEntity.success(list);
     }
+
+    @PostMapping("/category/add")
+    public CommonEntity<String> addCategory(
+            @RequestHeader("Authorization") String token,
+            @RequestParam String name) {
+        Long shopId = JwtUtils.getIdFromToken(token);
+        if (shopId == null) {
+            return CommonEntity.error("Token无效");
+        }
+        merchantService.addShopCategory(shopId, name);
+        return CommonEntity.success("添加成功");
+    }
+
+
+    @DeleteMapping("/category/delete/{id}")
+    public CommonEntity<String> deleteCategory(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("id") Long categoryId) {
+
+        Long shopId = JwtUtils.getIdFromToken(token);
+        if (shopId == null) return CommonEntity.error("Token无效");
+
+        merchantService.deleteShopCategory(shopId, categoryId);
+        return CommonEntity.success("删除成功");
+
+    }
+
+
 
 }

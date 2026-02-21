@@ -46,4 +46,9 @@ public interface DrinkRepository extends JpaRepository<Drink, Long>, JpaSpecific
      */
     Integer countByShopCategoryId(Long shopCategoryId);
 
+    // 将特定分类下的商品分类ID置空（或设为默认值）
+    @Modifying
+    @Query("UPDATE Drink d SET d.shopCategoryId = null WHERE d.shopCategoryId = :categoryId")
+    void clearCategoryForDrinks(@Param("categoryId") Long categoryId);
+
 }
