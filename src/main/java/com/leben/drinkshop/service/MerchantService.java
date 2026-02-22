@@ -124,5 +124,12 @@ public class MerchantService {
         shopCategoryRepository.deleteById(categoryId);
     }
 
+    @Transactional
+    public void updateSort(Long shopId, List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return;
 
+        for (int i = 0; i < ids.size(); i++) {
+            shopCategoryRepository.updateSortById(ids.get(i), shopId, i + 1);
+        }
+    }
 }

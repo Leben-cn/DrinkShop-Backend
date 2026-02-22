@@ -1,7 +1,6 @@
 package com.leben.drinkshop.repository;
 
 import com.leben.drinkshop.entity.Drink;
-import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;

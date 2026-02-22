@@ -1,6 +1,7 @@
 package com.leben.drinkshop.controller;
 
 import com.leben.drinkshop.dto.CommonEntity;
+import com.leben.drinkshop.dto.request.CategorySortRequest;
 import com.leben.drinkshop.dto.response.DrinkSpecItemResponse;
 import com.leben.drinkshop.dto.response.OrderResponse;
 import com.leben.drinkshop.dto.response.ShopCategoriesResponse;
@@ -126,6 +127,18 @@ public class MerchantController {
 
     }
 
+    /**
+     * 批量更新分类排序
+     */
+    @PostMapping("/category/sort/update")
+    public CommonEntity<String> updateCategorySort(
+            @RequestHeader("Authorization") String token,
+            @RequestBody List<Long> ids) {
+        Long shopId = JwtUtils.getIdFromToken(token);
+        if (shopId == null) return CommonEntity.error("Token无效");
 
+        merchantService.updateSort(shopId, ids);
+        return CommonEntity.success("更新成功");
+    }
 
 }
