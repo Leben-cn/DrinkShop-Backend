@@ -1,14 +1,15 @@
 package com.leben.drinkshop.service;
 
+import com.leben.drinkshop.dto.request.DrinkRequest;
 import com.leben.drinkshop.dto.response.DrinkSpecItemResponse;
+import com.leben.drinkshop.dto.response.DrinksResponse;
 import com.leben.drinkshop.dto.response.ShopCategoriesResponse;
-import com.leben.drinkshop.entity.ShopCategory;
-import com.leben.drinkshop.entity.SpecOption;
-import com.leben.drinkshop.entity.SpecTemplate;
+import com.leben.drinkshop.entity.*;
 import com.leben.drinkshop.repository.DrinkRepository;
 import com.leben.drinkshop.repository.ShopCategoryRepository;
 import com.leben.drinkshop.repository.SpecOptionRepository;
 import com.leben.drinkshop.repository.SpecTemplateRepository;
+import com.leben.drinkshop.util.DrinkConverterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -132,4 +133,76 @@ public class MerchantService {
             shopCategoryRepository.updateSortById(ids.get(i), shopId, i + 1);
         }
     }
+//
+    /**
+     * 获取店铺所有商品列表（包含下架，不计算距离）
+     */
+    public List<DrinksResponse> getShopAllDrinks(Long shopId) {
+
+        List<Drink> drinks = drinkRepository.findByShopId(shopId);
+
+        return drinks.stream()
+                .map(drink -> DrinkConverterUtils.convertDrinkToDto(drink, null, null))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 商家更新/添加商品
+     * @param shopId 需要更新的商品 Id
+     * @param request 更新的实体
+     */
+    @Transactional
+    public void saveOrUpdateDrink(Long shopId, DrinkRequest request) {
+        Drink drink;
+
+        // 1. 获取或新建 Drink 实例
+        if (request.getId() != null) {
+            drink = drinkRepository.findById(request.getId())
+                    .orElseThrow(() -> new RuntimeException("商品不存在"));
+            if (!drink.getShopId().equals(shopId)) {
+                throw new RuntimeException("无权操作此商品");
+            }
+        } else {
+            drink = new Drink();
+            drink.setShopId(shopId);
+        }
+
+        // 2. 映射基础属性
+        drink.setName(request.getName());
+        drink.setDescription(request.getDescription());
+        drink.setPrice(request.getPrice());
+        drink.setPackingFee(request.getPackingFee());
+        drink.setStock(request.getStock());
+        drink.setImg(request.getImg());
+        drink.setCategoryId(request.getCategoryId());
+        drink.setShopCategoryId(request.getShopCategoryId());
+        drink.setStatus(request.getStatus() != null ? request.getStatus() : 1);
+
+        // --- 关键步骤：先保存主体以获取 ID ---
+        Drink savedDrink = drinkRepository.saveAndFlush(drink);
+
+        // 3. 处理规格 (Clear & Re-add 模式)
+        if (savedDrink.getSpecRelations() == null) {
+            savedDrink.setSpecRelations(new ArrayList<>());
+        } else {
+            savedDrink.getSpecRelations().clear(); // 触发 orphanRemoval 物理删除旧数据
+        }
+
+        if (request.getSpecs() != null && !request.getSpecs().isEmpty()) {
+            for (var specReq : request.getSpecs()) {
+                DrinkSpecRelation relation = new DrinkSpecRelation();
+                // 绑定已经拥有 ID 的 savedDrink
+                relation.setDrink(savedDrink);
+                relation.setSpecOptionId(specReq.getSpecOptionId());
+                relation.setPriceAdjust(specReq.getPriceAdjust());
+                relation.setIsDefault(specReq.getIsDefault());
+
+                savedDrink.getSpecRelations().add(relation);
+            }
+        }
+
+        // 4. 最终级联保存
+        drinkRepository.save(savedDrink);
+    }
+
 }

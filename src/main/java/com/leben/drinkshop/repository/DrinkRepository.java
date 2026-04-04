@@ -50,4 +50,5 @@ public interface DrinkRepository extends JpaRepository<Drink, Long>, JpaSpecific
     @Query("UPDATE Drink d SET d.shopCategoryId = null WHERE d.shopCategoryId = :categoryId")
     void clearCategoryForDrinks(@Param("categoryId") Long categoryId);
 
+    List<Drink> findByShopId(Long shopId);
 }

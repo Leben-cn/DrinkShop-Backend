@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @NoArgsConstructor
@@ -15,29 +16,23 @@ public class DrinkSpecRelation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 1. 关联 Drink
-    @Column(name = "drink_id")
-    private Long drinkId;
-
-    // insertable=false, updatable=false 是为了防止和上面的 drinkId 重复映射
-    // 这里用于查询时直接获取 Drink 对象
+    // 控制权交给此对象，JPA 会自动提取 drink 的 ID 填充到数据库的 drink_id 列
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "drink_id", insertable = false, updatable = false)
+    @JoinColumn(name = "drink_id", nullable = false)
+    @JsonIgnore // 防止 JSON 序列化时出现死循环
     private Drink drink;
 
-    // 2. 关联 SpecOption (通用选项)
     @Column(name = "spec_option_id")
     private Long specOptionId;
 
-    @ManyToOne(fetch = FetchType.EAGER) // 查的时候通常想直接知道选了什么规格，所以用 EAGER
+    // 仅用于查询展示详情
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "spec_option_id", insertable = false, updatable = false)
     private SpecOption specOption;
 
-    // 3. 价格调整 (覆盖通用价格)
     @Column(name = "price_adjust")
     private BigDecimal priceAdjust;
 
-    // 4. 是否默认选中 (1是 0否)
     @Column(name = "is_default")
-    private Integer isDefault; // 或者用 Boolean，视数据库类型而定(tinyint(1)通常映射Boolean或Integer)
+    private Integer isDefault;
 }

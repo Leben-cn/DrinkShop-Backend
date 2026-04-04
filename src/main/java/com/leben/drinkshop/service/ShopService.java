@@ -39,7 +39,7 @@ public class ShopService {
             return CommonEntity.error(404, "店铺不存在");
         }
 
-        // 2. 【优化】计算距离 (只算一次，因为所有商品都在这家店)
+        // 2. 计算距离 (只算一次，因为所有商品都在这家店)
         String distanceStr = "";
         if (lat != null && lon != null) {
             double distance = DistanceUtils.calculateDistance(lat, lon, shop.getLatitude(), shop.getLongitude());

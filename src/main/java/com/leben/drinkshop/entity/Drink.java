@@ -74,6 +74,6 @@ public class Drink {
             createTime = LocalDateTime.now();
         }
     }
-    @OneToMany(mappedBy = "drink", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "drink", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DrinkSpecRelation> specRelations;
 }
