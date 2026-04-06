@@ -1,14 +1,12 @@
 package com.leben.drinkshop.service;
 
 import com.leben.drinkshop.dto.request.DrinkRequest;
+import com.leben.drinkshop.dto.request.MerchantUpdateInfoRequest;
 import com.leben.drinkshop.dto.response.DrinkSpecItemResponse;
 import com.leben.drinkshop.dto.response.DrinksResponse;
 import com.leben.drinkshop.dto.response.ShopCategoriesResponse;
 import com.leben.drinkshop.entity.*;
-import com.leben.drinkshop.repository.DrinkRepository;
-import com.leben.drinkshop.repository.ShopCategoryRepository;
-import com.leben.drinkshop.repository.SpecOptionRepository;
-import com.leben.drinkshop.repository.SpecTemplateRepository;
+import com.leben.drinkshop.repository.*;
 import com.leben.drinkshop.util.DrinkConverterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -28,6 +26,7 @@ public class MerchantService {
     private final SpecOptionRepository specOptionRepository;
     private final ShopCategoryRepository shopCategoryRepository;
     private final DrinkRepository drinkRepository;
+    private final ShopRepository shopRepository;
 
     public List<DrinkSpecItemResponse> getAllSpecItems() {
         // 1. 获取所有模板和选项，按 sort_order 升序
@@ -203,6 +202,66 @@ public class MerchantService {
 
         // 4. 最终级联保存
         drinkRepository.save(savedDrink);
+    }
+
+    /**
+     * 修改商家信息
+     */
+    @Transactional
+    public void updateMerchantInfo(Long merchantId, MerchantUpdateInfoRequest request) {
+        // 1. 获取商家对象，不存在则抛出异常
+        Shop merchant = shopRepository.findById(merchantId)
+                .orElseThrow(() -> new RuntimeException("商家不存在"));
+
+        // 2. 修改店铺头像
+        if (request.getImg() != null && !request.getImg().isEmpty()) {
+            merchant.setImg(request.getImg());
+        }
+
+        // 3. 修改店铺名
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            merchant.setName(request.getName());
+        }
+
+        // 4. 修改账号 (需要进行唯一性检查)
+        if (request.getAccount() != null && !request.getAccount().isEmpty()) {
+            // 只有当输入的账号与原账号不同时才校验
+            if (!request.getAccount().equals(merchant.getAccount())) {
+                Shop existing = shopRepository.findByAccount(request.getAccount());
+                if (existing != null) {
+                    throw new RuntimeException("该账号已被其他商家占用");
+                }
+                merchant.setAccount(request.getAccount());
+            }
+        }
+
+        // 5. 修改密码
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            merchant.setPassword(request.getPassword());
+        }
+
+        // 6. 修改联系电话
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
+            merchant.setPhone(request.getPhone());
+        }
+
+        // 7. 修改运费 (deliveryFee)
+        if (request.getDeliveryFee() != null) {
+            merchant.setDeliveryFee(request.getDeliveryFee());
+        }
+
+        // 8. 修改起送价 (对应截图中的起送价，实体类中的 minOrder)
+        if (request.getMinOrder() != null) {
+            merchant.setMinOrder(request.getMinOrder());
+        }
+
+        // 9. 修改店铺描述
+        if (request.getDescription() != null) {
+            merchant.setDescription(request.getDescription());
+        }
+
+        // 10. 持久化到数据库
+        shopRepository.save(merchant);
     }
 
 }

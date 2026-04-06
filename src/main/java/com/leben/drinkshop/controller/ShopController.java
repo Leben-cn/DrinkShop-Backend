@@ -102,6 +102,7 @@ public class ShopController {
         MerchantLoginResponse.ShopInfo info = new MerchantLoginResponse.ShopInfo();
         info.setId(shop.getId());
         info.setAccount(shop.getAccount());
+        info.setPassword(shop.getPassword());
         info.setShopName(shop.getName()); // 实体类字段是 name
         info.setImg(shop.getImg());
         info.setPhone(shop.getPhone());

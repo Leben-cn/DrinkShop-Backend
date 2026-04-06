@@ -15,6 +15,7 @@ public class MerchantLoginResponse {
     public static class ShopInfo {
         private Long id;
         private String account;
+        private String password;
         private String shopName;     // 对应实体类的 name
         private String img;          // 店铺头像
         private String description;  // 简介

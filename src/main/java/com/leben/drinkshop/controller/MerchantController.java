@@ -2,6 +2,7 @@ package com.leben.drinkshop.controller;
 
 import com.leben.drinkshop.dto.CommonEntity;
 import com.leben.drinkshop.dto.request.DrinkRequest;
+import com.leben.drinkshop.dto.request.MerchantUpdateInfoRequest;
 import com.leben.drinkshop.dto.response.DrinkSpecItemResponse;
 import com.leben.drinkshop.dto.response.DrinksResponse;
 import com.leben.drinkshop.dto.response.OrderResponse;
@@ -171,5 +172,24 @@ public class MerchantController {
         List<DrinksResponse> list=merchantService.getShopAllDrinks(shopId);
         return CommonEntity.success(list);
     }
+
+    @PostMapping("/update/info")
+    public CommonEntity<String> updateMerchantInfo(
+            @RequestHeader("Authorization") String token,
+            @RequestBody MerchantUpdateInfoRequest request
+    ) {
+        Long merchantId = JwtUtils.getIdFromToken(token);
+        if (merchantId == null) {
+            return CommonEntity.error("Token无效");
+        }
+
+        try {
+            merchantService.updateMerchantInfo(merchantId, request);
+            return CommonEntity.success("修改成功");
+        } catch (Exception e) {
+            return CommonEntity.error(e.getMessage());
+        }
+    }
+
 
 }
