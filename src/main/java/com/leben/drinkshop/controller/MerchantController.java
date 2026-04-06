@@ -7,6 +7,7 @@ import com.leben.drinkshop.dto.response.DrinkSpecItemResponse;
 import com.leben.drinkshop.dto.response.DrinksResponse;
 import com.leben.drinkshop.dto.response.OrderResponse;
 import com.leben.drinkshop.dto.response.ShopCategoriesResponse;
+import com.leben.drinkshop.entity.Shop;
 import com.leben.drinkshop.service.MerchantService;
 import com.leben.drinkshop.service.OrderService;
 import com.leben.drinkshop.service.ShopService;
@@ -186,6 +187,22 @@ public class MerchantController {
         try {
             merchantService.updateMerchantInfo(merchantId, request);
             return CommonEntity.success("修改成功");
+        } catch (Exception e) {
+            return CommonEntity.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/update/status")
+    public CommonEntity<String> updateStatus(
+            @RequestHeader("Authorization") String token,
+            @RequestParam Integer status) {
+        Long merchantId = JwtUtils.getIdFromToken(token);
+        if (merchantId == null) {
+            return CommonEntity.error("Token无效");
+        }
+        try {
+            shopService.updateStatus(merchantId, status);
+            return CommonEntity.success("状态修改成功");
         } catch (Exception e) {
             return CommonEntity.error(e.getMessage());
         }

@@ -4,13 +4,10 @@ import com.leben.drinkshop.dto.CommonEntity;
 import com.leben.drinkshop.dto.request.DrinkQueryRequest;
 import com.leben.drinkshop.dto.response.*;
 import com.leben.drinkshop.entity.Drink;
-import com.leben.drinkshop.entity.Shop;
 import com.leben.drinkshop.repository.DrinkRepository;
 import com.leben.drinkshop.repository.ShopRepository;
-import com.leben.drinkshop.util.DistanceUtils;
 import com.leben.drinkshop.util.DrinkConverterUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,8 +17,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import jakarta.persistence.criteria.Predicate;
 
 @Service

@@ -7,6 +7,7 @@ import com.leben.drinkshop.dto.response.ShopResponse;
 import com.leben.drinkshop.entity.Drink;
 import com.leben.drinkshop.entity.Shop;
 import com.leben.drinkshop.repository.DrinkRepository;
+import com.leben.drinkshop.repository.OrderRepository;
 import com.leben.drinkshop.repository.ShopRepository;
 import com.leben.drinkshop.util.DistanceUtils;
 import com.leben.drinkshop.util.DrinkConverterUtils;
@@ -28,6 +29,7 @@ public class ShopService {
 
     private final DrinkRepository drinkRepository;
     private final ShopRepository shopRepository;
+    private final OrderRepository orderRepository;
 
     /**
      * 获取店铺菜单
@@ -168,6 +170,22 @@ public class ShopService {
             return null;
         }
         return shop;
+    }
+
+    @Transactional
+    public void updateStatus(Long id, Integer status) {
+        Shop shop = shopRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("店铺不存在"));
+
+        // 如果商家想打烊 (status = 0)，检查是否有进行中的订单
+        if (status == 0) {
+            boolean hasPendingOrders = orderRepository.existsByShopIdAndStatus(id, 0);
+            if (hasPendingOrders) {
+                throw new RuntimeException("当前还有制作中的订单，请完成后再打烊");
+            }
+        }
+        shop.setStatus(status);
+        shopRepository.save(shop);
     }
 
 }

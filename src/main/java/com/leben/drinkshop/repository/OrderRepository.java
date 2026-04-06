@@ -35,4 +35,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     // 2. 根据状态查询店铺订单 (0:待制作, 1:已完成, 2:退款/售后)
     List<Order> findByShopIdAndStatusOrderByCreateTimeDesc(Long shopId, Integer status);
+
+    // 检查是否存在特定店铺的特定状态订单
+    boolean existsByShopIdAndStatus(Long shopId, Integer status);
 }
