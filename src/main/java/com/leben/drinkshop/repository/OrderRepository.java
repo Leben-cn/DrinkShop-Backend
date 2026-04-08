@@ -38,4 +38,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     // 检查是否存在特定店铺的特定状态订单
     boolean existsByShopIdAndStatus(Long shopId, Integer status);
+
 }

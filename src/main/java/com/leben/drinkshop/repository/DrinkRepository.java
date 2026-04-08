@@ -51,4 +51,6 @@ public interface DrinkRepository extends JpaRepository<Drink, Long>, JpaSpecific
     void clearCategoryForDrinks(@Param("categoryId") Long categoryId);
 
     List<Drink> findByShopId(Long shopId);
+
+    List<Drink> findByShopIdAndStatusNot(Long shopId, Integer status);
 }

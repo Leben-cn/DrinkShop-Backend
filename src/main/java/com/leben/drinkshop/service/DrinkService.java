@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -97,7 +98,24 @@ public class DrinkService {
         return CommonEntity.success(responsePage);
     }
 
+    @Transactional
+    public void deleteDrinkLogic(Long drinkId, Long shopId) {
+        // 1. 查询商品并校验是否存在
+        Drink drink = drinkRepository.findById(drinkId)
+                .orElseThrow(() -> new RuntimeException("商品不存在"));
 
+        // 2. 安全校验：确保商家只能删除自己店铺的商品
+        if (!drink.getShopId().equals(shopId)) {
+            throw new RuntimeException("无权操作此商品");
+        }
+
+        // 3. 业务校验（可选）：如果有进行中的订单涉及到此商品，是否允许删除？
+        // 如果业务允许删除后继续完成已有订单，则直接执行下一步
+
+        // 4. 执行逻辑删除
+        drink.setStatus(-1);
+        drinkRepository.save(drink);
+    }
 
 
 }

@@ -118,7 +118,7 @@ public class MerchantService {
         // 业务检查：检查分类下是否有商品
         Integer count = drinkRepository.countByShopCategoryId(categoryId);
         if (count != null && count > 0) {
-            throw new RuntimeException("该分类下尚有商品，请先移动或删除商品后再试");
+            throw new RuntimeException("该分类存在商品，无法删除");
         }
 
         shopCategoryRepository.deleteById(categoryId);
@@ -132,13 +132,12 @@ public class MerchantService {
             shopCategoryRepository.updateSortById(ids.get(i), shopId, i + 1);
         }
     }
-//
     /**
-     * 获取店铺所有商品列表（包含下架，不计算距离）
+     * 获取店铺所有有效商品列表（不包含已逻辑删除的 -1，包含下架，不计算距离）
      */
     public List<DrinksResponse> getShopAllDrinks(Long shopId) {
-
-        List<Drink> drinks = drinkRepository.findByShopId(shopId);
+        // 过滤掉 status = -1 的商品
+        List<Drink> drinks = drinkRepository.findByShopIdAndStatusNot(shopId, -1);
 
         return drinks.stream()
                 .map(drink -> DrinkConverterUtils.convertDrinkToDto(drink, null, null))

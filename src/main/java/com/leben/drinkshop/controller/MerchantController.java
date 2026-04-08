@@ -7,7 +7,7 @@ import com.leben.drinkshop.dto.response.DrinkSpecItemResponse;
 import com.leben.drinkshop.dto.response.DrinksResponse;
 import com.leben.drinkshop.dto.response.OrderResponse;
 import com.leben.drinkshop.dto.response.ShopCategoriesResponse;
-import com.leben.drinkshop.entity.Shop;
+import com.leben.drinkshop.service.DrinkService;
 import com.leben.drinkshop.service.MerchantService;
 import com.leben.drinkshop.service.OrderService;
 import com.leben.drinkshop.service.ShopService;
@@ -24,6 +24,7 @@ public class MerchantController {
     private final OrderService orderService;
     private final MerchantService merchantService;
     private final ShopService shopService;
+    private final DrinkService drinkService;
 
     /**
      * 获取商家的全部订单
@@ -203,6 +204,22 @@ public class MerchantController {
         try {
             shopService.updateStatus(merchantId, status);
             return CommonEntity.success("状态修改成功");
+        } catch (Exception e) {
+            return CommonEntity.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/delete/drink")
+    public CommonEntity<String> deleteDrink(
+            @RequestHeader("Authorization") String token,
+            @RequestParam Long drinkId) {
+        Long merchantId = JwtUtils.getIdFromToken(token);
+        if (merchantId == null) {
+            return CommonEntity.error("Token无效");
+        }
+        try {
+            drinkService.deleteDrinkLogic(drinkId, merchantId);
+            return CommonEntity.success("商品删除成功");
         } catch (Exception e) {
             return CommonEntity.error(e.getMessage());
         }
