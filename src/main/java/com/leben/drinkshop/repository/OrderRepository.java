@@ -1,9 +1,13 @@
 package com.leben.drinkshop.repository;
 
 import com.leben.drinkshop.entity.Order;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -39,4 +43,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // 检查是否存在特定店铺的特定状态订单
     boolean existsByShopIdAndStatus(Long shopId, Integer status);
 
+    /**
+     * 统计今日订单量 (状态为1:已完成)
+     */
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.shopId = :shopId AND o.status = 1 AND o.createTime >= :startTime AND o.createTime <= :endTime")
+    Long countTodayOrders(@Param("shopId") Long shopId, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
+
+    /**
+     * 统计今日营业额 (状态为1:已完成)
+     */
+    @Query("SELECT SUM(o.payAmount) FROM Order o WHERE o.shopId = :shopId AND o.status = 1 AND o.createTime >= :startTime AND o.createTime <= :endTime")
+    BigDecimal sumTodayRevenue(@Param("shopId") Long shopId, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
 }

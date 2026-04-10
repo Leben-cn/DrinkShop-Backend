@@ -15,6 +15,7 @@ import com.leben.drinkshop.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/merchant") // 区分于用户的 /orders
@@ -225,5 +226,19 @@ public class MerchantController {
         }
     }
 
-
+    @GetMapping("/shop/stats")
+    public CommonEntity<Map<String, Object>> getShopTodayStats(
+            @RequestHeader("Authorization") String token) {
+        Long merchantId = JwtUtils.getIdFromToken(token);
+        if (merchantId == null) {
+            return CommonEntity.error("Token无效");
+        }
+        try {
+            // 假设这里 merchantId 就是 shopId，或者你通过 merchantService 查到了 shopId
+            Map<String, Object> stats = orderService.getTodayStats(merchantId);
+            return CommonEntity.success(stats);
+        } catch (Exception e) {
+            return CommonEntity.error("获取今日店铺数据失败：" + e.getMessage());
+        }
+    }
 }

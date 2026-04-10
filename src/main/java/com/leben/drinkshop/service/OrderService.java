@@ -234,4 +234,29 @@ public class OrderService {
         return convertToVOList(orders);
     }
 
+    public Map<String, Object> getTodayStats(Long shopId) {
+        // 1. 获取今天的开始和结束时间
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        Date startTime = cal.getTime();
+
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        Date endTime = cal.getTime();
+
+        // 2. 查询数据
+        Long orderCount = orderRepository.countTodayOrders(shopId, startTime, endTime);
+        BigDecimal revenue = orderRepository.sumTodayRevenue(shopId, startTime, endTime);
+
+        // 3. 封装结果（处理 null 情况）
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("todayOrderCount", orderCount == null ? 0 : orderCount);
+        stats.put("todayRevenue", revenue == null ? BigDecimal.ZERO : revenue);
+
+        return stats;
+    }
+
 }
