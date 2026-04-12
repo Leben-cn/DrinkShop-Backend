@@ -54,4 +54,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      */
     @Query("SELECT SUM(o.payAmount) FROM Order o WHERE o.shopId = :shopId AND o.status = 1 AND o.createTime >= :startTime AND o.createTime <= :endTime")
     BigDecimal sumTodayRevenue(@Param("shopId") Long shopId, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
+
+    // 根据店铺ID和时间范围查询订单
+    List<Order> findByShopIdAndStatusAndCreateTimeBetweenOrderByCreateTimeDesc(
+            Long shopId,
+            Integer status,
+            Date start,
+            Date end
+    );
 }

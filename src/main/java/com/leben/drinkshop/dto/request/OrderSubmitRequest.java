@@ -13,6 +13,7 @@ public class OrderSubmitRequest {
     private String receiverName;
     private String receiverPhone;
     private String receiverAddress;
+    private String receiverImg;
 
     // 前端计算的总价 (后端仅作参考或校验)
     private BigDecimal payAmount;

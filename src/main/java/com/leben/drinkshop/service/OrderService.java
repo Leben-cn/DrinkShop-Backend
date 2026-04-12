@@ -49,6 +49,7 @@ public class OrderService {
         order.setReceiverName(request.getReceiverName());
         order.setReceiverPhone(request.getReceiverPhone());
         order.setReceiverAddress(request.getReceiverAddress());
+        order.setReceiverImg(request.getReceiverImg());
         order.setRemark(request.getRemark());
 
         // 3. 处理订单详情 & 计算金额
@@ -257,6 +258,77 @@ public class OrderService {
         stats.put("todayRevenue", revenue == null ? BigDecimal.ZERO : revenue);
 
         return stats;
+    }
+
+    public List<OrderResponse> getMerchantOrdersByDate(Long merchantId, String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) {
+            // 如果查全部，也要看你是否需要过滤已完成
+            return getMerchantOrders(merchantId, 1);
+        }
+
+        // 解析时间范围
+        Date[] range = parseDateRange(dateStr);
+        Date startTime = range[0];
+        Date endTime = range[1];
+
+        // 修改此处：增加参数 1 (代表已完成)
+        List<Order> orders = orderRepository.findByShopIdAndStatusAndCreateTimeBetweenOrderByCreateTimeDesc(
+                merchantId, 1, startTime, endTime);
+
+        return convertToVOList(orders);
+    }
+
+    /**
+     * 解析日期字符串为开始和结束时间
+     * 支持格式: "2025", "2025.3", "2025.3.5"
+     */
+    private Date[] parseDateRange(String dateStr) {
+        String[] parts = dateStr.split("\\.");
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MILLISECOND, 0); // 毫秒也要清零
+
+        int year = Integer.parseInt(parts[0]);
+        Date start;
+        Date end;
+
+        if (parts.length == 1) { // 年: 2026
+            cal.set(Calendar.YEAR, year);
+            cal.set(Calendar.MONTH, Calendar.JANUARY);
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            start = cal.getTime();
+
+            cal.set(Calendar.MONTH, Calendar.DECEMBER);
+            cal.set(Calendar.DAY_OF_MONTH, 31);
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
+            end = cal.getTime();
+        } else if (parts.length == 2) { // 月: 2026.4
+            int month = Integer.parseInt(parts[1]) - 1;
+            cal.set(Calendar.YEAR, year);
+            cal.set(Calendar.MONTH, month);
+            cal.set(Calendar.DAY_OF_MONTH, 1); // 必须设为1号
+            start = cal.getTime();
+
+            // 关键：设置为该月最后一天
+            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
+            end = cal.getTime();
+        } else { // 日: 2026.4.12
+            int month = Integer.parseInt(parts[1]) - 1;
+            int day = Integer.parseInt(parts[2]);
+            cal.set(year, month, day, 0, 0, 0);
+            start = cal.getTime();
+
+            cal.set(year, month, day, 23, 59, 59);
+            end = cal.getTime();
+        }
+        return new Date[]{start, end};
     }
 
 }

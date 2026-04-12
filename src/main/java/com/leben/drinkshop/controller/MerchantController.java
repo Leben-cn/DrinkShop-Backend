@@ -241,4 +241,22 @@ public class MerchantController {
             return CommonEntity.error("获取今日店铺数据失败：" + e.getMessage());
         }
     }
+
+    /**
+     * 商家获取订单（支持按时间筛选）
+     * @param dateStr 格式示例："2025", "2025.3", "2025.3.5"
+     */
+    @GetMapping("/order/list")
+    public CommonEntity<List<OrderResponse>> getMerchantOrderList(
+            @RequestParam(required = false) String dateStr,
+            @RequestHeader("Authorization") String token) {
+
+        Long merchantId = JwtUtils.getIdFromToken(token);
+        if (merchantId == null) {
+            return CommonEntity.error("Token无效");
+        }
+
+        List<OrderResponse> list = orderService.getMerchantOrdersByDate(merchantId, dateStr);
+        return CommonEntity.success(list);
+    }
 }

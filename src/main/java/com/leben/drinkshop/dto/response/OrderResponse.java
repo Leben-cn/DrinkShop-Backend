@@ -27,6 +27,7 @@ public class OrderResponse {
     private String receiverName;
     private String receiverPhone;
     private String receiverAddress;
+    private String receiverImg;
 
     private Boolean isComment;
 

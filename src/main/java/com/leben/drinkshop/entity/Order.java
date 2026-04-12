@@ -42,6 +42,9 @@ public class Order {
     private String receiverPhone;
     private String receiverAddress;
 
+    @Column(name = "receiver_img")
+    private String receiverImg;
+
     /** 备注 */
     private String remark;
 
