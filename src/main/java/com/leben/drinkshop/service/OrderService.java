@@ -331,4 +331,9 @@ public class OrderService {
         return new Date[]{start, end};
     }
 
+    public BigDecimal getShopTotalRevenue(Long shopId) {
+        BigDecimal total = orderRepository.sumTotalRevenueByShopId(shopId);
+        return total != null ? total : BigDecimal.ZERO;
+    }
+
 }

@@ -62,4 +62,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             Date start,
             Date end
     );
+
+    // 使用 JPQL 查询该商家所有状态为 1 的订单总金额
+    @Query("SELECT SUM(o.payAmount) FROM Order o WHERE o.shopId = :shopId AND o.status = 1")
+    BigDecimal sumTotalRevenueByShopId(@Param("shopId") Long shopId);
 }

@@ -14,6 +14,8 @@ import com.leben.drinkshop.service.ShopService;
 import com.leben.drinkshop.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -258,5 +260,17 @@ public class MerchantController {
 
         List<OrderResponse> list = orderService.getMerchantOrdersByDate(merchantId, dateStr);
         return CommonEntity.success(list);
+    }
+
+    @GetMapping("/shop/revenue")
+    public CommonEntity<BigDecimal> getRevenue(
+            @RequestHeader("Authorization") String token) {
+        Long merchantId = JwtUtils.getIdFromToken(token);
+        if (merchantId == null) {
+            return CommonEntity.error("Token无效");
+        }
+
+        BigDecimal revenue = orderService.getShopTotalRevenue(merchantId);
+        return CommonEntity.success(revenue);
     }
 }
