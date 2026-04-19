@@ -39,6 +39,11 @@ dependencies {
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
 	implementation 'io.jsonwebtoken:jjwt:0.9.1'
 	implementation 'javax.xml.bind:jaxb-api:2.3.1'
+
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// 建议同时添加 FastJSON，方便在 WebSocket 中解析 JSON 字符串
+	implementation 'com.alibaba:fastjson:2.0.32'
 }
 
 tasks.named('test') {

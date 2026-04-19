@@ -15,7 +15,7 @@ public class JwtUtils {
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 7;
 
     /**
-     * 【修改】生成 Token，增加 role 参数
+     * 生成 Token，增加 role 参数
      * @param id 用户ID 或 商家ID
      * @param role 角色标识，例如 "USER" 或 "MERCHANT"
      */
@@ -57,7 +57,7 @@ public class JwtUtils {
     /**
      * 获取角色
      */
-    public String getRoleFromToken(String token) {
+    public static String getRoleFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims != null ? (String) claims.get("role") : null;
     }
