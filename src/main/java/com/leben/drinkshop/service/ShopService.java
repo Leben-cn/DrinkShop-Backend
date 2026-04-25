@@ -77,8 +77,9 @@ public class ShopService {
         Page<Shop> shopPage = shopRepository.getShopFeedNearBy(userLat, userLon, seed, pageable);
 
         //要区分 “完全没数据” 和 “滑到底了”两种情况
-        if (shopPage.isEmpty()&& page == 0) {
-            return CommonEntity.error(404, "附近10公里没有店铺");
+        if (shopPage.isEmpty() && page == 0) {
+            // 第一个参数传提示语，第二个参数传空的数据对象
+            return CommonEntity.success("附近10公里没有店铺", Page.empty(pageable));
         }
 
         // 3. 转换 Shop -> ShopResponse (逻辑不变)
