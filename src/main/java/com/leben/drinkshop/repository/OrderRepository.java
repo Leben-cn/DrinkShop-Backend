@@ -1,8 +1,10 @@
 package com.leben.drinkshop.repository;
 
 import com.leben.drinkshop.entity.Order;
+import jakarta.transaction.Transactional;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -66,4 +68,28 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // 使用 JPQL 查询该商家所有状态为 1 的订单总金额
     @Query("SELECT SUM(o.payAmount) FROM Order o WHERE o.shopId = :shopId AND o.status = 1")
     BigDecimal sumTotalRevenueByShopId(@Param("shopId") Long shopId);
+
+    /**
+     * 一键更新所有饮品的月销量 (过去30天内状态为3的订单)
+     */
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE drinks d SET d.sales_volume = (" +
+            "SELECT COALESCE(SUM(oi.quantity), 0) FROM order_item oi " +
+            "JOIN orders o ON oi.order_id = o.id " +
+            "WHERE oi.product_id = d.id AND o.status = 3 " +
+            "AND o.create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY))", nativeQuery = true)
+    void updateAllDrinksMonthlySales();
+
+    /**
+     * 一键更新所有店铺的月销量 (过去30天内状态为3的订单)
+     */
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE shops s SET s.total_sales = (" +
+            "SELECT COALESCE(SUM(oi.quantity), 0) FROM order_item oi " +
+            "JOIN orders o ON oi.order_id = o.id " +
+            "WHERE o.shop_id = s.id AND o.status = 3 " +
+            "AND o.create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY))", nativeQuery = true)
+    void updateAllShopsMonthlySales();
 }

@@ -57,7 +57,6 @@ public class UserService {
 
     @Transactional(rollbackFor = Exception.class)
     public void submitComment(CommentSubmitRequest request, Long userId) {
-        // --- 0. 【新增】先查询用户信息 ---
         // 我们需要拿用户的头像和昵称，存到 Comment 表里做快照
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("用户不存在"));

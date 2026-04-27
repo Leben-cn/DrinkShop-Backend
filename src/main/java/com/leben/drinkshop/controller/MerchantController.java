@@ -273,4 +273,18 @@ public class MerchantController {
         BigDecimal revenue = orderService.getShopTotalRevenue(merchantId);
         return CommonEntity.success(revenue);
     }
+
+    @PostMapping("/order/updateStatus")
+    public CommonEntity<String> updateStatus(
+            @RequestParam("orderId") Long orderId,
+            @RequestParam("status") Integer status) {
+
+        try {
+            String successMsg = orderService.updateOrderStatus(orderId, status);
+            return CommonEntity.success(successMsg);
+        } catch (RuntimeException e) {
+            // 这里的 error 对应你之前说的“异常提示”
+            return CommonEntity.error(e.getMessage());
+        }
+    }
 }

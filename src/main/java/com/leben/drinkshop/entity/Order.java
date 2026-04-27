@@ -20,6 +20,7 @@ public class Order {
     private String orderNo;
 
     /** 用户ID (对应你的App用户) */
+    @Column(name = "user_id") // 明确对应数据库 user_id 字段
     private Long userId;
 
     /** 订单状态 */
@@ -58,6 +59,8 @@ public class Order {
 
     @Column(name = "is_commented")
     private Boolean isCommented=false;
+
+
 
     // --- 关联关系 ---
 

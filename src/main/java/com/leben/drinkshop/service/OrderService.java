@@ -114,7 +114,7 @@ public class OrderService {
 
     public List<OrderResponse> getOrdersToComment(Long userId, Double userLat, Double userLon) {
         // 逻辑：只有"已完成"(status=1) 且 "未评价"(isCommented=false) 的订单才需要评价
-        List<Order> orders = orderRepository.findByUserIdAndStatusAndIsCommentedFalseOrderByCreateTimeDesc(userId, 1);
+        List<Order> orders = orderRepository.findByUserIdAndStatusAndIsCommentedFalseOrderByCreateTimeDesc(userId, 3);
         List<OrderResponse> responseList = convertToVOList(orders);
         if (userLat != null && userLon != null) {
             overrideStatusWithShopInfo(responseList, userLat, userLon);
@@ -174,19 +174,23 @@ public class OrderService {
             Shop shop = shopMap.get(order.getShopId());
 
             if (shop == null) {
-                order.setStatus(404); // 店铺不存在/已下架
-                continue; // 结束当前循环，后面不用看了
-            }
-
-            // 假设 shop.status = 1 是正常营业
-            if (shop.getStatus() != 1) {
-                order.setStatus(500); // 店铺暂停营业
+                order.setShopState("店铺已关闭");
                 continue;
             }
 
+            // 1. 设置基础营业状态
+            if (shop.getStatus() == 1) {
+                order.setShopState("营业中");
+            } else {
+                order.setShopState("暂停营业");
+            }
+
+            // 2. 校验距离
             double distance = DistanceUtils.calculateDistance(userLat, userLon, shop.getLatitude(), shop.getLongitude());
             if (distance > MAX_DELIVERY_RADIUS) {
-                order.setStatus(1000); // 超出配送范围
+                // 如果超出距离，可以覆盖状态，或者在后面加个括号
+                order.setShopState("超出配送范围");
+                order.setStatus(1000);
             }
         }
     }
@@ -334,6 +338,25 @@ public class OrderService {
     public BigDecimal getShopTotalRevenue(Long shopId) {
         BigDecimal total = orderRepository.sumTotalRevenueByShopId(shopId);
         return total != null ? total : BigDecimal.ZERO;
+    }
+
+    @Transactional
+    public String updateOrderStatus(Long orderId, Integer targetStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("订单不存在"));
+
+        // 执行状态修改
+        order.setStatus(targetStatus);
+        orderRepository.save(order);
+
+        // 根据目标状态返回不同的成功文案
+        return switch (targetStatus) {
+            case 0 -> "开始制作中";
+            case 1 -> "已出餐";
+            case 2 -> "订单已取消";
+            case 3 -> "已完成";
+            default -> "操作成功";
+        };
     }
 
 }

@@ -24,10 +24,12 @@ public class OrderResponse {
     private BigDecimal discountAmount;
 
     // --- 4. 收货人信息 ---
+    private Long userId;
     private String receiverName;
     private String receiverPhone;
     private String receiverAddress;
     private String receiverImg;
+    private String shopState;
 
     private Boolean isComment;
 
