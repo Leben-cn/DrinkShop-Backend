@@ -166,7 +166,7 @@ public class UserController {
     /**
      * 保存地址 (新增或修改)
      */
-    @PostMapping("/save")
+    @PostMapping("/save/address")
     public CommonEntity<String> saveAddress(@RequestBody AddressRequest request,
                                             @RequestHeader("Authorization") String token) {
 
@@ -190,9 +190,11 @@ public class UserController {
     /**
      * 删除地址
      */
-    @PostMapping("/delete/{id}")
-    public CommonEntity<String> deleteAddress(@PathVariable Long id) {
-        userService.deleteAddress(id);
+    @PostMapping("/delete/address")
+    public CommonEntity<String> deleteAddress(@RequestParam("id") Long addressId,
+                                              @RequestHeader("Authorization") String token) {
+        Long currentUserId = JwtUtils.getIdFromToken(token);
+        userService.deleteAddress(addressId, currentUserId);
         return CommonEntity.success("删除成功");
     }
 

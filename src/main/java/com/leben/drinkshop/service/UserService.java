@@ -281,22 +281,23 @@ public class UserService {
     public void saveAddress(AddressRequest request, Long userId) {
         Address address = new Address();
 
-        // 如果 request 有 ID，说明是修改，先查出来
+        // 1. 如果有 ID，说明是修改，先查出来
         if (request.getId() != null) {
             address = addressRepository.findById(request.getId())
                     .orElseThrow(() -> new RuntimeException("地址不存在"));
         }
 
+        // 2. 将 Request 属性拷贝到实体
         BeanUtils.copyProperties(request, address);
 
-        // 强制设置 UserId (防止越权)
+        // 3. 强制设置 UserId (防止越权修改他人地址)
         address.setUserId(userId);
 
-        // 如果设置了默认地址，需要把该用户其他地址的 isDefault 设为 false
         if (Boolean.TRUE.equals(request.getIsDefault())) {
-            clearDefaultAddress(userId);
+            addressRepository.resetDefaultAddressByUserId(userId);
         }
 
+        // 5. 保存当前地址
         addressRepository.save(address);
     }
 
@@ -323,8 +324,19 @@ public class UserService {
     /**
      * 删除地址
      */
-    public void deleteAddress(Long id) {
-        addressRepository.deleteById(id);
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteAddress(Long addressId, Long userId) {
+        // 1. 先查询该地址
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new RuntimeException("地址不存在"));
+
+        // 2. 越权校验：判断该地址是否属于当前操作用户
+        if (!address.getUserId().equals(userId)) {
+            throw new RuntimeException("无权操作该地址");
+        }
+
+        // 3. 执行删除
+        addressRepository.delete(address);
     }
 
     /**
