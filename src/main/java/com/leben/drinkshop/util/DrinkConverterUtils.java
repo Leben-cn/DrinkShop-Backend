@@ -20,6 +20,14 @@ public class DrinkConverterUtils {
         DrinksResponse dto = new DrinksResponse();
         BeanUtils.copyProperties(drink, dto);
 
+        if (drink.getShop() != null) {
+            // 假设你的 Drink 实体类里有关联 Shop 对象，且 Shop 对象里有 name 属性
+            dto.setShopName(drink.getShop().getName());
+        } else {
+            // 如果关联为空，可以设置一个默认值，方便排查数据问题
+            dto.setShopName("未知店铺");
+        }
+
         // 1. 填充店铺分类
         if (drink.getShopCategory() != null) {
             ShopCategoriesResponse scDto = new ShopCategoriesResponse();

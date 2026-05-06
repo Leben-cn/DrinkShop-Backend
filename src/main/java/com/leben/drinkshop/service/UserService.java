@@ -37,11 +37,29 @@ public class UserService {
     private final ShopFavoriteRepository shopFavoriteRepository;
     private final ShopRepository shopRepository;
 
-    public User registerUser(User user) {
+    /**
+     * 用户注册业务逻辑 (与商家端风格一致)
+     */
+    @Transactional
+    public void registerUser(User user) {
+        // 1. 校验账号是否已存在
         if (userRepository.existsByAccount(user.getAccount())) {
-            throw new RuntimeException("账号已存在");
+            throw new RuntimeException("该账号已被注册");
         }
-        return userRepository.save(user);
+
+        // 2. 补全默认值 (模仿商家端补全 status 的风格)
+        // 比如设置默认昵称，如果前端没传性别，可以设为"保密"
+        if (user.getNickName() == null || user.getNickName().isEmpty()) {
+            user.setNickName("用户_" + user.getAccount());
+        }
+
+        if (user.getGender() == null) {
+            user.setGender("保密");
+        }
+
+        // 3. 保存到数据库
+        // createTime 会在 User 类的 @PrePersist 中自动填充
+        userRepository.save(user);
     }
 
     public User loginUser(String account, String password) {
@@ -139,73 +157,6 @@ public class UserService {
             drink.setMark(bg.doubleValue());
             drinkRepository.save(drink);
         }
-    }
-
-    /**
-     * 场景1：查询【我的】评价列表
-     */
-    public CommonEntity<List<CommentResponse>> getUserComments(Long userId) {
-        // 查出该用户的已评价订单
-        List<Order> orders = orderRepository.findByUserIdAndIsCommentedTrueOrderByCreateTimeDesc(userId);
-        // 复用转换逻辑
-        return CommonEntity.success(convertOrdersToResponses(orders));
-    }
-
-    /**
-     * 场景2：查询【某商家】的评价列表
-     */
-    public CommonEntity<List<CommentResponse>> getShopComments(Long shopId) {
-        // 查出该商家的已评价订单
-        List<Order> orders = orderRepository.findByShopIdAndIsCommentedTrueOrderByCreateTimeDesc(shopId);
-        // 复用转换逻辑
-        return CommonEntity.success(convertOrdersToResponses(orders));
-    }
-
-    /**
-     * 【公共私有方法】将订单列表转换为前端需要的评价聚合列表
-     */
-    private List<CommentResponse> convertOrdersToResponses(List<Order> orders) {
-        if (orders == null || orders.isEmpty()) {
-            return List.of();
-        }
-
-        return orders.stream().map(order -> {
-                    // 查出该订单下的所有细粒度评价
-                    List<Comment> comments = commentRepository.findByOrderId(order.getId());
-                    if (comments == null || comments.isEmpty()) return null;
-
-                    Comment firstComment = comments.get(0);
-                    CommentResponse vo = new CommentResponse(); // 假设你的DTO叫 CommentResponse
-
-                    // --- 基础信息 ---
-                    vo.setUserName(firstComment.getUserName());
-                    vo.setUserAvatar(firstComment.getUserAvatar());
-                    vo.setMerchantName(order.getShopName());
-                    vo.setMerchantAvatar(order.getShopLogo());
-                    vo.setOrderId(order.getId());
-                    vo.setCreateTime(firstComment.getCreateTime().toString().replace("T", " "));
-
-                    // --- 内容和图片 (取第一条) ---
-                    vo.setContent(firstComment.getContent());
-                    vo.setPicture(firstComment.getPicture());
-
-                    // --- 聚合商品名 (A、B、C) ---
-                    String joinedNames = comments.stream()
-                            .map(Comment::getProductName)
-                            .collect(Collectors.joining("、"));
-                    vo.setProductName(joinedNames);
-
-                    // --- 计算平均分 (四舍五入) ---
-                    double avg = comments.stream()
-                            .mapToInt(Comment::getScore)
-                            .average()
-                            .orElse(5.0);
-                    vo.setScore((int) Math.round(avg));
-
-                    return vo;
-                })
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toList());
     }
 
     /**

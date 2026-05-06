@@ -68,6 +68,12 @@ public class Comment {
     private LocalDateTime createTime;
 
     /**
+     * 评价状态 (0-已审核不通过，1-正常，2-已审核通过)
+     */
+    @Column(name = "status", nullable = false)
+    private Integer status = 1;
+
+    /**
      * 插入前自动填充默认值
      */
     @PrePersist

@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class CommentResponse {
+    private Long id;
     private String userName;
     private String userAvatar;
     private String merchantName;
@@ -14,4 +15,5 @@ public class CommentResponse {
     private String content;
     private String picture;
     private String createTime;
+    private Integer status; // 评价状态
 }

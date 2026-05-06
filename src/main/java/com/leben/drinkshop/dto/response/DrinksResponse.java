@@ -20,6 +20,8 @@ public class DrinksResponse {
 
     private Double mark;
 
+    private String shopName;
+
     private Integer salesVolume;
 
     private LocalDateTime createTime;

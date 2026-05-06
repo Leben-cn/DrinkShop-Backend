@@ -30,10 +30,21 @@ public class UserController {
     private final DrinkService drinkService;
     private final OrderService orderService;
 
+    /**
+     * 用户注册
+     */
     @PostMapping("/register")
-    public CommonEntity<User> registerUser(@RequestBody User user) {
-        User savedUser = userService.registerUser(user);
-        return CommonEntity.success("注册成功", savedUser);
+    public CommonEntity<String> registerUser(@RequestBody User user) {
+        // 1. 基础判空校验 (模仿商家端风格)
+        if (user.getAccount() == null || user.getPassword() == null) {
+            return CommonEntity.error("账号或密码不能为空");
+        }
+
+        // 2. 调用业务逻辑
+        userService.registerUser(user);
+
+        // 3. 返回成功响应
+        return CommonEntity.success("注册成功");
     }
 
     @PostMapping("/login")
@@ -93,21 +104,6 @@ public class UserController {
 
         userService.submitComment(request, currentUserId);
         return CommonEntity.success("评价成功");
-    }
-
-    /**
-     * 接口1：获取【我的评价】列表
-     */
-    @GetMapping("/comment/list")
-    public CommonEntity<List<CommentResponse>> getMyCommentList(
-            @RequestHeader("Authorization") String token
-    ) {
-        Long currentUserId = JwtUtils.getIdFromToken(token);
-        if (currentUserId == null) {
-            return CommonEntity.error("Token无效，请重新登录");
-        }
-        // 调用 Service 查用户的
-        return userService.getUserComments(currentUserId);
     }
 
     /**

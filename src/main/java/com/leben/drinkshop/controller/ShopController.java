@@ -56,19 +56,6 @@ public class ShopController {
     }
 
     /**
-     * 获取【商家评价】列表
-     */
-    @GetMapping("/comment/list")
-    public CommonEntity<List<CommentResponse>> getShopCommentList(
-            @RequestParam("shopId") Long shopId
-    ) {
-        if (shopId == null) {
-            return CommonEntity.error("店铺ID不能为空");
-        }
-        return userService.getShopComments(shopId);
-    }
-
-    /**
      * 1. 商家注册 (改回简单返回 String)
      */
     @PostMapping("/register")

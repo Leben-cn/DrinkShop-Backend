@@ -92,4 +92,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "WHERE o.shop_id = s.id AND o.status = 3 " +
             "AND o.create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY))", nativeQuery = true)
     void updateAllShopsMonthlySales();
+
+    /**
+     * 查询全库所有已评价的订单（管理员用）
+     */
+    List<Order> findByIsCommentedTrueOrderByCreateTimeDesc();
 }
