@@ -133,34 +133,13 @@ public class OrderService {
     }
 
     /**
-     * 通用转换方法：Entity List -> VO List
+     * 重构原有的 List 转换方法，直接复用 convertToVO
      */
     private List<OrderResponse> convertToVOList(List<Order> orders) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        return orders.stream().map(order -> {
-            OrderResponse vo = new OrderResponse();
-            // 1. 复制基本属性
-            BeanUtils.copyProperties(order, vo);
-
-            vo.setIsComment(order.getIsCommented());
-
-            // 2. 特殊处理时间 (Date -> String)
-            if (order.getCreateTime() != null) {
-                vo.setCreateTime(sdf.format(order.getCreateTime()));
-            }
-
-            // 3. 处理子列表 (Items)
-            if (order.getItems() != null) {
-                List<OrderItemResponse> items = order.getItems().stream().map(item -> {
-                    OrderItemResponse orderItemResponse = new OrderItemResponse();
-                    BeanUtils.copyProperties(item, orderItemResponse);
-                    return orderItemResponse;
-                }).collect(Collectors.toList());
-                vo.setItems(items);
-            }
-            return vo;
-        }).collect(Collectors.toList());
+        if (orders == null) return new ArrayList<>();
+        return orders.stream()
+                .map(this::convertToVO) // 直接调用你刚写的单体转换方法
+                .collect(Collectors.toList());
     }
 
     private void overrideStatusWithShopInfo(List<OrderResponse> orderList, double userLat, double userLon) {
@@ -357,6 +336,59 @@ public class OrderService {
             case 3 -> "已完成";
             default -> "操作成功";
         };
+    }
+
+    /**
+     * 根据角色和关键字搜索订单
+     */
+    public List<OrderResponse> searchOrdersByRole(Long id, String role, String keyword) {
+        List<Order> orders;
+
+        switch (role) {
+            case "USER":
+                orders = orderRepository.searchByUserAndKeyword(id, keyword);
+                break;
+            case "MERCHANT":
+                orders = orderRepository.searchByShopAndKeyword(id, keyword);
+                break;
+            case "ADMIN":
+                orders = orderRepository.searchAllByKeyword(keyword);
+                break;
+            default:
+                return new ArrayList<>();
+        }
+
+        // 修改点：调用下面新写的 convertToVO 方法
+        return orders.stream().map(this::convertToVO).collect(Collectors.toList());
+    }
+
+    /**
+     * 【新增】单体转换方法：Entity -> VO
+     * 保持和你 convertToVOList 内部逻辑一致
+     */
+    private OrderResponse convertToVO(Order order) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        OrderResponse vo = new OrderResponse();
+
+        // 1. 复制基本属性
+        BeanUtils.copyProperties(order, vo);
+        vo.setIsComment(order.getIsCommented());
+
+        // 2. 时间处理
+        if (order.getCreateTime() != null) {
+            vo.setCreateTime(sdf.format(order.getCreateTime()));
+        }
+
+        // 3. 处理子列表
+        if (order.getItems() != null) {
+            List<OrderItemResponse> items = order.getItems().stream().map(item -> {
+                OrderItemResponse itemVo = new OrderItemResponse();
+                BeanUtils.copyProperties(item, itemVo);
+                return itemVo;
+            }).collect(Collectors.toList());
+            vo.setItems(items);
+        }
+        return vo;
     }
 
 }

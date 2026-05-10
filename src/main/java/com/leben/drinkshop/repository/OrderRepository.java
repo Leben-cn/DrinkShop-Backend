@@ -97,4 +97,21 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      * 查询全库所有已评价的订单（管理员用）
      */
     List<Order> findByIsCommentedTrueOrderByCreateTimeDesc();
+
+
+    // 管理员：全量模糊查
+    @Query("SELECT DISTINCT o FROM Order o JOIN o.items i WHERE " +
+            "(:keyword IS NULL OR i.productName LIKE %:keyword%) ORDER BY o.createTime DESC")
+    List<Order> searchAllByKeyword(@Param("keyword") String keyword);
+
+    // 用户：查自己的订单 + 饮品名模糊
+    @Query("SELECT DISTINCT o FROM Order o JOIN o.items i WHERE o.userId = :userId AND " +
+            "(:keyword IS NULL OR i.productName LIKE %:keyword%) ORDER BY o.createTime DESC")
+    List<Order> searchByUserAndKeyword(@Param("userId") Long userId, @Param("keyword") String keyword);
+
+    // 商家：查自己店铺的订单 + 饮品名模糊
+    @Query("SELECT DISTINCT o FROM Order o JOIN o.items i WHERE o.shopId = :shopId AND " +
+            "(:keyword IS NULL OR i.productName LIKE %:keyword%) ORDER BY o.createTime DESC")
+
+    List<Order> searchByShopAndKeyword(@Param("shopId") Long shopId, @Param("keyword") String keyword);
 }

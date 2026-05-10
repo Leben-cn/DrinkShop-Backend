@@ -56,7 +56,7 @@ public class ShopController {
     }
 
     /**
-     * 1. 商家注册 (改回简单返回 String)
+     * 商家注册
      */
     @PostMapping("/register")
     public CommonEntity<String> register(@RequestBody Shop shop) {
@@ -68,7 +68,7 @@ public class ShopController {
     }
 
     /**
-     * 2. 商家登录
+     * 商家登录
      */
     @PostMapping("/login")
     public CommonEntity<MerchantLoginResponse> login(@RequestParam String account,
